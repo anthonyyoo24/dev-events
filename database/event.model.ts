@@ -30,6 +30,7 @@ const EventSchema = new Schema<IEvent>(
     },
     slug: {
       type: String,
+      required: [true, 'Slug is required'],
       unique: true,
       lowercase: true,
       trim: true,
@@ -144,13 +145,22 @@ EventSchema.pre('save', function (next) {
 
 // Helper function to generate URL-friendly slug
 function generateSlug(title: string): string {
-  return title
+  const slug = title
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
     .replace(/\s+/g, '-') // Replace spaces with hyphens
     .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
     .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+  
+  // Return fallback if slug is empty (e.g., title contains only special characters)
+  if (!slug || slug.length === 0) {
+    const timestamp = Date.now();
+    const randomSuffix = Math.random().toString(36).substring(2, 9);
+    return `untitled-${timestamp}-${randomSuffix}`;
+  }
+  
+  return slug;
 }
 
 // Helper function to normalize date to ISO format
